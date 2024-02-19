@@ -24,14 +24,17 @@ let persons = [
   },
 ];
 
+// Home
 app.get("/", (request, response) => {
   response.send("<h1>Hello Phonebook backend !</h1>");
 });
 
+// See all persons available
 app.get("/api/persons", (request, response) => {
   response.json(persons);
 });
 
+// See information about
 app.get("/info", (request, response) => {
   let personsCount = persons.length;
   let dateNow = new Date();
@@ -39,6 +42,20 @@ app.get("/info", (request, response) => {
   <p>Phonebook has info for ${personsCount} people</p>
   <p>${dateNow}</p>
   `);
+});
+
+// Get one person
+app.get("/api/persons/:id", (request, response) => {
+  const id = Number(request.params.id);
+  const person = persons.find((person) => {
+    return person.id === id;
+  });
+
+  if (person) {
+    response.json(person);
+  } else {
+    response.status(404).end();
+  }
 });
 
 const PORT = 3002;
