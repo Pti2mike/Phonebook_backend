@@ -1,10 +1,19 @@
 const express = require("express");
 const morgan = require("morgan");
 
+// Create new Morgan token for req.body
+morgan.token("req-body", (request) => JSON.stringify(request.body));
+
 const app = express();
 
+// Use Morgan with personalized format including body of the request
+app.use(
+  morgan(
+    ":method :url :status :res[content-length] - :response-time ms :req-body"
+  )
+);
+
 app.use(express.json());
-app.use(morgan("tiny"));
 
 let persons = [
   {
