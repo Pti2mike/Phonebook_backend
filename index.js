@@ -32,7 +32,7 @@ app.get("/api/persons", (request, response) => {
 });
 
 // See information about
-app.get("/info", (request, response) => {
+app.get("/api/persons/info", (request, response) => {
   Person.find().then((persons) => {
     let personsCount = persons.length;
     let dateNow = new Date();
