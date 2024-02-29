@@ -25,52 +25,60 @@ app.get("/", (request, response) => {
 });
 
 // See all persons available
-app.get("/api/persons", (request, response) => {
-  Person.find().then((persons) => {
-    response.json(persons);
-  });
+app.get("/api/persons", (request, response, next) => {
+  Person.find()
+    .then((persons) => {
+      response.json(persons);
+    })
+    .catch((error) => next(error));
 });
 
 // See information about
-app.get("/api/persons/info", (request, response) => {
-  Person.find().then((persons) => {
-    let personsCount = persons.length;
-    let dateNow = new Date();
-    response.send(`
+app.get("/api/persons/info", (request, response, next) => {
+  Person.find()
+    .then((persons) => {
+      let personsCount = persons.length;
+      let dateNow = new Date();
+      response.send(`
     <p>Phonebook has info for ${personsCount} people</p>
     <p>${dateNow}</p>
     `);
-  });
+    })
+    .catch((error) => next(error));
 });
 
 // Get one person
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
   const id = request.params.id;
 
-  Person.findById(id).then((person) => {
-    if (person) {
-      response.status(200).json(person);
-    } else {
-      response.status(404).end();
-    }
-  });
+  Person.findById(id)
+    .then((person) => {
+      if (person) {
+        response.status(200).json(person);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
 // Delete a person
-app.delete("/api/persons/:id", (request, response) => {
+app.delete("/api/persons/:id", (request, response, next) => {
   const idToDelete = request.params.id;
 
-  Person.findByIdAndDelete(idToDelete).then((deletedPerson) => {
-    if (!deletedPerson) {
-      return response.status(404).json({ error: "Person not found!" });
-    }
-    console.log(deletedPerson);
-    return response.status(204).end();
-  });
+  Person.findByIdAndDelete(idToDelete)
+    .then((deletedPerson) => {
+      if (!deletedPerson) {
+        return response.status(404).json({ error: "Person not found!" });
+      }
+      console.log(deletedPerson);
+      return response.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 // Add a person
-app.post("/api/persons", async (request, response) => {
+app.post("/api/persons", async (request, response, next) => {
   const body = request.body;
 
   if (!body.name || !body.number) {
@@ -92,10 +100,33 @@ app.post("/api/persons", async (request, response) => {
     number: body.number || null,
   });
 
-  person.save().then((savedPerson) => {
-    response.status(201).json(savedPerson);
-  });
+  person
+    .save()
+    .then((savedPerson) => {
+      response.status(201).json(savedPerson);
+    })
+    .catch((error) => next(error));
 });
+
+// Middleware which catches requests made to non-existent routes
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
+
+app.use(unknownEndpoint);
+
+// Middleware errorHandler
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
