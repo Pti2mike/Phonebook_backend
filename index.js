@@ -108,6 +108,23 @@ app.post("/api/persons", async (request, response, next) => {
     .catch((error) => next(error));
 });
 
+// Update a person
+app.put("/api/persons/:id", (request, response, next) => {
+  const idToUpdate = request.params.id;
+  const body = request.body;
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  };
+
+  Person.findByIdAndUpdate(idToUpdate, person, { new: true })
+    .then((updatedPerson) => {
+      response.status(200).json(updatedPerson);
+    })
+    .catch((error) => next(error));
+});
+
 // Middleware which catches requests made to non-existent routes
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
